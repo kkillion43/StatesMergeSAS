@@ -1,0 +1,158 @@
+/* Create the reference to our lib */
+libname msds6306 '/folders/myfolders/Data/';
+
+/* Read in the main dataSet */
+data EduData;
+set msds6306.dataset1;
+run;
+proc sort data=EduData;
+by State;
+run;
+
+
+
+
+/* Marriage data */ 
+
+proc import file="/folders/myfolders/Data/AAbbottEducation.xlsx"
+out=marData
+dbms=xlsx;
+getnames=yes;
+run;
+
+data mar_adj;
+set marData
+(keep = State PctMalesNeverMarried PctFemalesNeverMarried);
+run;
+proc sort data=mar_adj;
+by State;
+run;
+
+
+/* Electoral Votes */
+proc import file="/folders/myfolders/Data/Electoral_Votes.csv"
+out=ElecData
+dbms=csv;
+getnames=yes;
+run;
+
+data Elec_adj;
+set ElecData;
+run;
+proc sort data=Elec_adj;
+by State;
+run;
+
+
+
+
+/* Highschool Data */
+proc import file="/folders/myfolders/Data/High_20school_20graduate_202009.xlsx"
+out=highData
+dbms=xlsx;
+getnames=no;
+run;
+
+data high_adj;
+set highData;
+Keep A B;
+rename A =State B =EducPerc;
+run;
+proc sort data=high_adj;
+by State;
+run;
+
+
+/* Poverty Data */
+proc import file="/folders/myfolders/Data/Poverty.csv" REPLACE
+out=PovertyData
+dbms=csv;
+datarow=3;
+getnames=yes;
+run;
+
+data Poverty_adj;
+set PovertyData;
+rename Percent_People_Below_Poverty_Lev = State VAR2=PercBelowPoverty;
+run;
+proc sort data=Poverty_adj;
+by State;
+run;
+
+
+/* Restaurants Data */
+proc import file="/folders/myfolders/Data/Restaurants.csv"
+out=RestData
+dbms=csv;
+getnames=yes;
+run;
+
+data Rest_adj;
+set RestData;
+Keep State restaurants Population rest_person rest_100_person;
+run;
+proc sort data=Rest_adj;
+by State;
+run;
+
+
+/* State Income Tax */
+proc import file="/folders/myfolders/Data/StateIncomeTax.csv"
+out=TaxData
+dbms=csv;
+getnames=yes;
+run;
+
+data Tax_adj;
+set TaxData;
+run;
+proc sort data=Tax_adj;
+by State;
+run;
+
+
+
+/* Unemployment data */
+proc import file="/folders/myfolders/Data/UnemploymentRate2016.xlsx"
+out=UnemployData
+dbms=xlsx;
+getnames=yes;
+run;
+
+data Unemploy_adj;
+set UnemployData;
+run;
+proc sort data=Unemploy_adj;
+by State;
+run;
+
+
+/* TestScores Data */
+proc import file="/folders/myfolders/Data/testscores.xls"
+dbms=xls
+out=TestData;
+getnames=yes;
+run;
+
+data Test_adj;
+set TestData;
+keep State Spending_Per_student;
+run;
+
+proc sort data=Test_adj;
+by State;
+run;
+
+
+/* Merge the Data */
+data mergeData;
+merge Test_adj Unemploy_adj Tax_adj Rest_adj Poverty_adj high_adj Elec_adj mar_adj EduData;
+by State;
+proc print data=mergeData;
+run;
+
+/* Export out the data */
+proc export data = MergeData
+outfile="/folders/myfolders/SAS Projects/StatesMerge.csv" 
+dbms=csv
+replace;
